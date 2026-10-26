@@ -409,30 +409,57 @@ function createActivityCardHTML(act) {
             <span class="badge-ext ${badgeClass}">${file.type.toUpperCase()}</span>
             <span class="file-row-name" title="${file.name}">${file.name}</span>
           </div>
-          <div class="file-download-arrow" title="View Fullsize Poster">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
+          <div class="file-actions-group">
+            <span class="file-action-pill" title="View Fullsize Poster">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>View</span>
+            </span>
+            <a href="${encoded}" download="${file.name}" class="file-action-icon-btn" title="Download Image" onclick="event.stopPropagation()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </a>
           </div>
         </div>
       `;
     }
 
+    // For PDF files: open directly in browser tab so Sir can read it without downloading!
+    if (file.type === "pdf") {
+      return `
+        <div class="file-row">
+          <a href="${encoded}" target="_blank" rel="noopener noreferrer" class="file-row-left" title="Click to view PDF in browser">
+            <span class="badge-ext ${badgeClass}">${file.type.toUpperCase()}</span>
+            <span class="file-row-name">${file.name}</span>
+          </a>
+          <div class="file-actions-group">
+            <a href="${encoded}" target="_blank" rel="noopener noreferrer" class="file-action-pill" title="Open and read PDF in browser tab">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Read</span>
+            </a>
+            <a href="${encoded}" download="${file.name}" class="file-action-icon-btn" title="Save / Download ${file.name}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    // For PPTX, DOCX, XLSX files:
     return `
-      <a href="${encoded}" class="file-row" download target="_blank" rel="noopener noreferrer">
-        <div class="file-row-left">
+      <div class="file-row">
+        <a href="${encoded}" download="${file.name}" class="file-row-left" title="Click to download ${file.name}">
           <span class="badge-ext ${badgeClass}">${file.type.toUpperCase()}</span>
-          <span class="file-row-name" title="${file.name}">${file.name}</span>
+          <span class="file-row-name">${file.name}</span>
+        </a>
+        <div class="file-actions-group">
+          <button class="file-action-pill" onclick="previewOfficeFile('${encoded}', '${file.name}', '${file.type}')" title="Preview or view instructions">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>Open</span>
+          </button>
+          <a href="${encoded}" download="${file.name}" class="file-action-icon-btn" title="Download ${file.name}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </a>
         </div>
-        <div class="file-download-arrow" title="Download Deliverable">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-        </div>
-      </a>
+      </div>
     `;
   }).join("");
 
@@ -782,11 +809,34 @@ function toggleTheme() {
   }
 }
 
+// Office & Document File Viewer (PPTX, DOCX, XLSX)
+function previewOfficeFile(relativeEncodedPath, filename, fileType) {
+  const isOnline = window.location.protocol.startsWith('http');
+  
+  if (isOnline) {
+    // When deployed online (e.g. GitHub Pages), we can use Microsoft Office Online Viewer or Google Viewer
+    const fullPublicUrl = new URL(relativeEncodedPath, window.location.href).href;
+    const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fullPublicUrl)}`;
+    
+    openPreviewModal(officeViewerUrl, `${filename} (${fileType.toUpperCase()} Viewer)`);
+  } else {
+    // When opened locally via file:///
+    // Trigger download with exact original filename and open prompt
+    const a = document.createElement('a');
+    a.href = relativeEncodedPath;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+}
+
 // Window attachments
 window.openPreviewModal = openPreviewModal;
 window.closePreviewModal = closePreviewModal;
 window.openImageModal = openImageModal;
 window.closeImageModal = closeImageModal;
+window.previewOfficeFile = previewOfficeFile;
 window.resetFilters = resetFilters;
 window.applyMetricFilter = applyMetricFilter;
 window.jumpToCard = jumpToCard;

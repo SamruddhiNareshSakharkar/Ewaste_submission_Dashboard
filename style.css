@@ -1160,13 +1160,54 @@ body.light-theme .live-link-box {
   text-overflow: ellipsis;
 }
 
-.file-download-arrow {
-  color: var(--text-muted);
+.file-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   flex-shrink: 0;
 }
 
-.file-row:hover .file-download-arrow {
+.file-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.file-action-pill:hover {
+  background: var(--bg-secondary);
+  border-color: #38bdf8;
   color: #38bdf8;
+}
+
+.file-action-icon-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.file-action-icon-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--accent-emerald-light);
 }
 
 /* Compact Table View for Sir */
